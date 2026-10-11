@@ -8,7 +8,7 @@ st.set_page_config(page_title="Sentiment Analyzer", layout="wide")
 st.title("Product Review Sentiment Dashboard")
 
 # CHANGE THIS if your CSV file name in GitHub is different
-CSV_URL = "https://raw.githubusercontent.com/murugagowski/sentiment-analysis/main/sample_reviews.csv"
+CSV_URL = "https://raw.githubusercontent.com/murugagowsi/sentiment-dashboard/refs/heads/main/amazon_reviews_sample.csv"
 
 def clean_text(text):
     text = re.sub(r"<.*?>", " ", str(text))
