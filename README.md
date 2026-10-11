@@ -5,8 +5,7 @@ An interactive Streamlit dashboard that analyzes Amazon food product reviews and
 **Live app:** https://sentiment-dashboard-a5xewubpuz6xabmbwuqsto.streamlit.app
 
 
-
-![Dashboard screenshot](dashboard.png)
+![Dashboard screenshot](Screenshot%202026-10-11%20225846.png)
 
 
 
