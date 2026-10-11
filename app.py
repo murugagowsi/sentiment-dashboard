@@ -74,7 +74,9 @@ ax.pie(counts.values, autopct="%1.1f%%",
        colors=[colors.get(k, "#95a5a6") for k in counts.index], startangle=90)
 ax.legend(counts.index, loc="center left", bbox_to_anchor=(1, 0.5))
 ax.axis("equal")
-st.pyplot(fig, use_container_width=False)
+col1, col2 = st.columns([1, 2])
+with col1:
+    st.pyplot(fig)
 st.caption("Note: the dataset is imbalanced, with far more positive reviews than negative ones.")
 
 # ---- Word cloud ----
