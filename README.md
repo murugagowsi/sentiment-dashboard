@@ -21,6 +21,7 @@ An interactive Streamlit dashboard that analyzes Amazon food product reviews and
 - Optional upload of your own CSV
 - Sentiment distribution pie chart
 - Word cloud of top words in negative reviews
+- "Try it yourself" box that scores any review with VADER sentiment
 
 ## Tools Used
 - Python
@@ -28,14 +29,14 @@ An interactive Streamlit dashboard that analyzes Amazon food product reviews and
 - matplotlib
 - WordCloud
 - Streamlit
+- VADER (vaderSentiment)
 
 ## Key Insights
 - **Imbalanced data:** 77.6% positive, 14.2% negative, 8.2% neutral
 - **Quality is the top complaint:** "taste", "flavor", "salty", "hard", "bad"
 - **Chips are the most complained-about category**, followed by coffee, cookies and frosting
 - **Value and packaging also come up:** "price", "money", "package", "plastic"
-- **Limitation:** words like "good" and "great" appear in negative reviews, likely from phrases like "not good"
-
+- **Limitation:** words like "good" and "great" appear in negative reviews, likely from phrases like "not good". The "Try it yourself" box handles these cases with VADER.
 ## Data Cleaning
 - Removed HTML tags (e.g. `<br />`)
 - Kept letters only and lowercased text
@@ -47,6 +48,5 @@ An interactive Streamlit dashboard that analyzes Amazon food product reviews and
 - Reading word clouds critically, since frequency does not equal meaning
 
 ## Future Improvements
-- Use bigrams (e.g. "not good", "too salty")
-- Add a "type a review, get a sentiment" box
+- Use bigrams (e.g. "not good", "too salty") 
 - Balance the dataset before modeling
