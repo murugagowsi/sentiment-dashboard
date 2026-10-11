@@ -16,9 +16,9 @@ def clean_text(text):
     return text.lower()
 
 custom_stopwords = STOPWORDS.union({
-    "br", "product", "one", "will", "amazon", "much", "even",
-    "really", "got", "get", "just", "also", "would", "like",
-    "im", "ive", "dont", "didnt", "cant", "thing", "bit", "lot"
+    "now", "say", "time", "buy", "bought", "order", "ordered",
+    "use", "used", "make", "made", "know", "think", "thought",
+    "try", "tried", "found", "came", "box", "bag"
 })
 
 uploaded = st.file_uploader("Upload your own CSV (optional)", type="csv")
