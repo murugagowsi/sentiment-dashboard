@@ -7,8 +7,6 @@ An interactive Streamlit dashboard that analyzes Amazon food product reviews and
 ![Data preview](Screenshot%202026-10-11%20225807.png)
 
 
-
-
 ![Sentiment distribution](Screenshot%202026-10-11%20225846.png)
 
 
