@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud, STOPWORDS
-
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 st.set_page_config(page_title="Sentiment Analyzer", layout="wide")
 st.title("Product Review Sentiment Dashboard")
 
@@ -95,3 +95,22 @@ if neg_text.strip():
     st.pyplot(fig2)
 else:
     st.info("No negative reviews found.")
+
+
+# ---- Try it yourself ----
+st.subheader("Try it yourself")
+user_review = st.text_area("Type a product review:")
+
+if st.button("Analyze"):
+    if user_review.strip():
+        score = SentimentIntensityAnalyzer().polarity_scores(user_review)["compound"]
+        if score >= 0.05:
+            label = "Positive"
+        elif score <= -0.05:
+            label = "Negative"
+        else:
+            label = "Neutral"
+        st.write(f"**Sentiment:** {label}")
+        st.write(f"Score: {score:.2f} (from -1 to +1)")
+    else:
+        st.warning("Please type a review first.")
