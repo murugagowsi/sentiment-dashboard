@@ -1,19 +1,46 @@
+import joblib
 import re
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud, STOPWORDS
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
 st.set_page_config(page_title="Sentiment Analyzer", layout="wide")
 st.title("Product Review Sentiment Dashboard")
 
-# CHANGE THIS if your CSV file name in GitHub is different
 CSV_URL = "https://raw.githubusercontent.com/murugagowsi/sentiment-dashboard/refs/heads/main/amazon_reviews_sample.csv"
+
 
 def clean_text(text):
     text = re.sub(r"<.*?>", " ", str(text))
     text = re.sub(r"[^a-zA-Z\s]", " ", text)
     return text.lower()
+
+
+custom_stopwords = STOPWORDS.union({
+    "br", "product", "one", "will", "amazon", "much", "even",
+    "really", "got", "get", "just", "also", "would", "like",
+    "im", "ive", "dont…
+[11:39 am, 12/10/2026] Gowsika: import joblib
+import re
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud, STOPWORDS
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+st.set_page_config(page_title="Sentiment Analyzer", layout="wide")
+st.title("Product Review Sentiment Dashboard")
+
+CSV_URL = "https://raw.githubusercontent.com/murugagowsi/sentiment-dashboard/refs/heads/main/amazon_reviews_sample.csv"
+
+
+def clean_text(text):
+    text = re.sub(r"<.*?>", " ", str(text))
+    text = re.sub(r"[^a-zA-Z\s]", " ", text)
+    return text.lower()
+
 
 custom_stopwords = STOPWORDS.union({
     "br", "product", "one", "will", "amazon", "much", "even",
@@ -24,11 +51,14 @@ custom_stopwords = STOPWORDS.union({
     "try", "tried", "found", "came", "box", "bag", "bags"
 })
 
+# ---- Load data ----
 uploaded = st.file_uploader("Upload your own CSV (optional)", type="csv")
+
 
 @st.cache_data
 def load_default():
     return pd.read_csv(CSV_URL)
+
 
 try:
     df = pd.read_csv(uploaded) if uploaded else load_default()
@@ -37,7 +67,7 @@ except Exception as e:
     st.error(f"Could not load data: {e}")
     st.stop()
 
-# ---- Find text column (your file has clean_text) ----
+# ---- Find text column ----
 text_col = next((c for c in df.columns if c.lower() in
                  ["text", "review", "reviews", "review_text", "clean_text"]), None)
 if text_col is None:
@@ -64,6 +94,7 @@ if df["sent"].isna().all():
 
 df["wc_text"] = df[text_col].apply(clean_text)
 
+# ---- Preview ----
 st.subheader("Dataset Preview")
 st.dataframe(df.head(10))
 
@@ -96,21 +127,27 @@ if neg_text.strip():
 else:
     st.info("No negative reviews found.")
 
-
 # ---- Try it yourself ----
 st.subheader("Try it yourself")
+
+
+@st.cache_resource
+def load_model():
+    return joblib.load("model.pkl"), joblib.load("vectorizer.pkl")
+
+
+ml_model, ml_vec = load_model()
 user_review = st.text_area("Type a product review:")
 
 if st.button("Analyze"):
     if user_review.strip():
-        score = SentimentIntensityAnalyzer().polarity_scores(user_review)["compound"]
-        if score >= 0.05:
-            label = "Positive"
-        elif score <= -0.05:
-            label = "Negative"
-        else:
-            label = "Neutral"
-        st.write(f"**Sentiment:** {label}")
-        st.write(f"Score: {score:.2f} (from -1 to +1)")
+        cleaned = clean_text(user_review)
+        proba = ml_model.predict_proba(ml_vec.transform([cleaned]))[0]
+        label = ml_model.classes_[proba.argmax()]
+        st.write(f"*My model:* {label.capitalize()} ({proba.max()*100:.0f}% confident)")
+
+        vscore = SentimentIntensityAnalyzer().polarity_scores(user_review)["compound"]
+        vlabel = "Positive" if vscore >= 0.05 else "Negative" if vscore <= -0.05 else "Neutral"
+        st.write(f"*VADER:* {vlabel} (score {vscore:.2f})")
     else:
         st.warning("Please type a review first.")
