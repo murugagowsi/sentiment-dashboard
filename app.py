@@ -3,56 +3,52 @@ import re
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+
 from wordcloud import WordCloud, STOPWORDS
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-st.set_page_config(page_title="Sentiment Analyzer", layout="wide")
+
+# ---- Page Configuration ----
+st.set_page_config(
+    page_title="Sentiment Analyzer",
+    layout="wide"
+)
+
 st.title("Product Review Sentiment Dashboard")
 
-CSV_URL = "https://raw.githubusercontent.com/murugagowsi/sentiment-dashboard/refs/heads/main/amazon_reviews_sample.csv"
+
+# ---- Dataset URL ----
+CSV_URL = (
+    "https://raw.githubusercontent.com/"
+    "murugagowsi/sentiment-dashboard/"
+    "refs/heads/main/amazon_reviews_sample.csv"
+)
 
 
+# ---- Clean Text ----
 def clean_text(text):
     text = re.sub(r"<.*?>", " ", str(text))
     text = re.sub(r"[^a-zA-Z\s]", " ", text)
     return text.lower()
 
 
-custom_stopwords = STOPWORDS.union({
-    "br", "product", "one", "will", "amazon", "much", "even",
-    "really", "got", "get", "just", "also", "would", "like",
-    "im", "ive", "dont…
-[11:39 am, 12/10/2026] Gowsika: import joblib
-import re
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud, STOPWORDS
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-
-st.set_page_config(page_title="Sentiment Analyzer", layout="wide")
-st.title("Product Review Sentiment Dashboard")
-
-CSV_URL = "https://raw.githubusercontent.com/murugagowsi/sentiment-dashboard/refs/heads/main/amazon_reviews_sample.csv"
-
-
-def clean_text(text):
-    text = re.sub(r"<.*?>", " ", str(text))
-    text = re.sub(r"[^a-zA-Z\s]", " ", text)
-    return text.lower()
-
-
+# ---- Custom Stopwords ----
 custom_stopwords = STOPWORDS.union({
     "br", "product", "one", "will", "amazon", "much", "even",
     "really", "got", "get", "just", "also", "would", "like",
     "im", "ive", "dont", "didnt", "cant", "thing", "bit", "lot",
-    "now", "say", "says", "time", "buy", "bought", "order", "ordered",
-    "use", "used", "make", "made", "know", "think", "thought",
-    "try", "tried", "found", "came", "box", "bag", "bags"
+    "now", "say", "says", "time", "buy", "bought", "order",
+    "ordered", "use", "used", "make", "made", "know", "think",
+    "thought", "try", "tried", "found", "came", "box", "bag",
+    "bags"
 })
 
-# ---- Load data ----
-uploaded = st.file_uploader("Upload your own CSV (optional)", type="csv")
+
+# ---- Load Dataset ----
+uploaded = st.file_uploader(
+    "Upload your own CSV (optional)",
+    type=["csv"]
+)
 
 
 @st.cache_data
@@ -61,93 +57,258 @@ def load_default():
 
 
 try:
-    df = pd.read_csv(uploaded) if uploaded else load_default()
+    if uploaded is not None:
+        df = pd.read_csv(uploaded)
+    else:
+        df = load_default()
+
     st.success(f"Loaded {len(df)} reviews!")
+
 except Exception as e:
     st.error(f"Could not load data: {e}")
     st.stop()
 
-# ---- Find text column ----
-text_col = next((c for c in df.columns if c.lower() in
-                 ["text", "review", "reviews", "review_text", "clean_text"]), None)
+
+# ---- Find Review Text Column ----
+text_col = next(
+    (
+        c for c in df.columns
+        if c.lower() in [
+            "text",
+            "review",
+            "reviews",
+            "review_text",
+            "clean_text"
+        ]
+    ),
+    None
+)
+
 if text_col is None:
-    st.error(f"No review text column found. Columns: {list(df.columns)}")
+    st.error(
+        f"No review text column found. "
+        f"Available columns: {list(df.columns)}"
+    )
     st.stop()
 
-# ---- Find sentiment column ----
-valid = {"Positive", "Neutral", "Negative"}
+
+# ---- Find Sentiment Column ----
+valid_sentiments = {"Positive", "Neutral", "Negative"}
+
 df["sent"] = None
-for c in ["sentiment_label", "sentiment", "label"]:
-    if c in df.columns:
-        vals = df[c].astype(str).str.capitalize()
-        if set(vals.unique()) <= valid:
-            df["sent"] = vals
+
+for column in ["sentiment_label", "sentiment", "label"]:
+    if column in df.columns:
+        values = df[column].astype(str).str.capitalize()
+
+        if set(values.unique()).issubset(valid_sentiments):
+            df["sent"] = values
             break
 
+
+# ---- Derive Sentiment from Score if Needed ----
 if df["sent"].isna().all():
+
     if "Score" in df.columns:
         df["sent"] = df["Score"].apply(
-            lambda s: "Positive" if s >= 4 else ("Neutral" if s == 3 else "Negative"))
+            lambda score:
+                "Positive" if score >= 4
+                else "Neutral" if score == 3
+                else "Negative"
+        )
+
     else:
-        st.error(f"No usable sentiment column. Columns: {list(df.columns)}")
+        st.error(
+            "No usable sentiment column found. "
+            f"Available columns: {list(df.columns)}"
+        )
         st.stop()
 
+
+# ---- Clean Review Text for Word Cloud ----
 df["wc_text"] = df[text_col].apply(clean_text)
 
-# ---- Preview ----
+
+# ---- Dataset Preview ----
 st.subheader("Dataset Preview")
-st.dataframe(df.head(10))
 
-# ---- Pie chart ----
+st.dataframe(df.head(10), use_container_width=True)
+
+
+# ---- Sentiment Distribution ----
 st.subheader("Sentiment Distribution")
+
 counts = df["sent"].value_counts()
-colors = {"Positive": "#2ecc71", "Neutral": "#f1c40f", "Negative": "#e74c3c"}
 
-fig, ax = plt.subplots(figsize=(4, 4))
-ax.pie(counts.values, autopct="%1.1f%%",
-       colors=[colors.get(k, "#95a5a6") for k in counts.index], startangle=90)
-ax.legend(counts.index, loc="center left", bbox_to_anchor=(1, 0.5))
-ax.axis("equal")
-col1, col2 = st.columns([1, 2])
-with col1:
-    st.pyplot(fig)
-st.caption("Note: the dataset is imbalanced, with far more positive reviews than negative ones.")
+colors = {
+    "Positive": "#2ecc71",
+    "Neutral": "#f1c40f",
+    "Negative": "#e74c3c"
+}
 
-# ---- Word cloud ----
+if not counts.empty:
+
+    fig, ax = plt.subplots(figsize=(5, 5))
+
+    ax.pie(
+        counts.values,
+        labels=None,
+        autopct="%1.1f%%",
+        colors=[
+            colors.get(label, "#95a5a6")
+            for label in counts.index
+        ],
+        startangle=90
+    )
+
+    ax.legend(
+        counts.index,
+        loc="center left",
+        bbox_to_anchor=(1, 0.5)
+    )
+
+    ax.axis("equal")
+
+    col1, col2 = st.columns([1, 2])
+
+    with col1:
+        st.pyplot(fig)
+
+    plt.close(fig)
+
+    st.caption(
+        "Note: The dataset may contain more positive reviews "
+        "than negative reviews."
+    )
+
+
+# ---- Word Cloud for Negative Reviews ----
 st.subheader("Top Words in Negative Reviews")
-neg_text = " ".join(df[df["sent"] == "Negative"]["wc_text"])
 
-if neg_text.strip():
-    wc = WordCloud(width=800, height=400, background_color="white",
-                   stopwords=custom_stopwords).generate(neg_text)
-    fig2, ax2 = plt.subplots(figsize=(8, 4))
-    ax2.imshow(wc, interpolation="bilinear")
+negative_reviews = df.loc[
+    df["sent"] == "Negative",
+    "wc_text"
+]
+
+negative_text = " ".join(negative_reviews.dropna().astype(str))
+
+if negative_text.strip():
+
+    wordcloud = WordCloud(
+        width=800,
+        height=400,
+        background_color="white",
+        stopwords=custom_stopwords
+    ).generate(negative_text)
+
+    fig2, ax2 = plt.subplots(figsize=(10, 5))
+
+    ax2.imshow(
+        wordcloud,
+        interpolation="bilinear"
+    )
+
     ax2.axis("off")
+
     st.pyplot(fig2)
+
+    plt.close(fig2)
+
 else:
-    st.info("No negative reviews found.")
-
-# ---- Try it yourself ----
-st.subheader("Try it yourself")
+    st.info("No negative reviews found in this dataset.")
 
 
+# ---- Try It Yourself ----
+st.subheader("Try It Yourself")
+
+st.write(
+    "Enter a product review below to analyze its sentiment."
+)
+
+
+# ---- Load Machine Learning Model ----
 @st.cache_resource
 def load_model():
-    return joblib.load("model.pkl"), joblib.load("vectorizer.pkl")
+
+    model = joblib.load("model.pkl")
+    vectorizer = joblib.load("vectorizer.pkl")
+
+    return model, vectorizer
 
 
-ml_model, ml_vec = load_model()
-user_review = st.text_area("Type a product review:")
+# ---- Review Input ----
+user_review = st.text_area(
+    "Type a product review:",
+    placeholder="Example: This product is excellent and works perfectly!"
+)
 
+
+# ---- Analyze Review ----
 if st.button("Analyze"):
-    if user_review.strip():
-        cleaned = clean_text(user_review)
-        proba = ml_model.predict_proba(ml_vec.transform([cleaned]))[0]
-        label = ml_model.classes_[proba.argmax()]
-        st.write(f"*My model:* {label.capitalize()} ({proba.max()*100:.0f}% confident)")
 
-        vscore = SentimentIntensityAnalyzer().polarity_scores(user_review)["compound"]
-        vlabel = "Positive" if vscore >= 0.05 else "Negative" if vscore <= -0.05 else "Neutral"
-        st.write(f"*VADER:* {vlabel} (score {vscore:.2f})")
-    else:
+    if not user_review.strip():
+
         st.warning("Please type a review first.")
+
+    else:
+
+        try:
+            # Machine Learning Prediction
+            ml_model, ml_vectorizer = load_model()
+
+            cleaned_review = clean_text(user_review)
+
+            review_vector = ml_vectorizer.transform(
+                [cleaned_review]
+            )
+
+            prediction = ml_model.predict(review_vector)[0]
+
+            # Display ML prediction
+            st.write(
+                f"**My Model:** {str(prediction).capitalize()}"
+            )
+
+            # Display confidence if supported
+            if hasattr(ml_model, "predict_proba"):
+
+                probabilities = ml_model.predict_proba(
+                    review_vector
+                )[0]
+
+                confidence = probabilities.max() * 100
+
+                st.write(
+                    f"**Model Confidence:** {confidence:.0f}%"
+                )
+
+            # VADER Sentiment Analysis
+            vader_analyzer = SentimentIntensityAnalyzer()
+
+            vader_score = vader_analyzer.polarity_scores(
+                user_review
+            )["compound"]
+
+            if vader_score >= 0.05:
+                vader_label = "Positive"
+
+            elif vader_score <= -0.05:
+                vader_label = "Negative"
+
+            else:
+                vader_label = "Neutral"
+
+            st.write(
+                f"**VADER:** {vader_label} "
+                f"(Score: {vader_score:.2f})"
+            )
+
+        except FileNotFoundError:
+            st.error(
+                "Model files not found. Please ensure "
+                "model.pkl and vectorizer.pkl exist "
+                "in your GitHub repository."
+            )
+
+        except Exception as e:
+            st.error(f"Could not analyze the review: {e}")
