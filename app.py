@@ -262,25 +262,23 @@ if st.button("Analyze"):
                 [cleaned_review]
             )
 
+            probs = ml_model.predict_proba(review_vector)[0]
             prediction = ml_model.predict(review_vector)[0]
+            confidence = probs.max() * 100
+
+            # Low confidence means the review is treated as Neutral
+            if confidence < 60:
+                prediction = "neutral"
 
             # Display ML prediction
             st.write(
                 f"**My Model:** {str(prediction).capitalize()}"
             )
 
-            # Display confidence if supported
-            if hasattr(ml_model, "predict_proba"):
-
-                probabilities = ml_model.predict_proba(
-                    review_vector
-                )[0]
-
-                confidence = probabilities.max() * 100
-
-                st.write(
-                    f"**Model Confidence:** {confidence:.0f}%"
-                )
+            # Display confidence
+            st.write(
+                f"**Model Confidence:** {confidence:.0f}%"
+            )
 
             # VADER Sentiment Analysis
             vader_analyzer = SentimentIntensityAnalyzer()
