@@ -2,7 +2,7 @@
 
 An interactive Streamlit dashboard that analyzes Amazon food product reviews and shows sentiment trends and common complaints.
 
-**Live app:** https://sentiment-dashboard-a5xewubpuz6xabmbwuqsto.streamlit.app
+**Live app:** https://sentiment-dashboard-a5xewubpuz6xabmbwuqsto.streamlit.app/
 
 ![Data preview](Screenshot%202026-10-11%20225807.png)
 
