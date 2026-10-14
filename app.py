@@ -286,6 +286,7 @@ if st.button("Analyze"):
             st.write(
                 f"**Model Confidence:** {confidence:.0f}%"
             )
+            st.write(dict(zip(ml_model.classes_, probs.round(2))))
 
             # VADER Sentiment Analysis
             vader_analyzer = SentimentIntensityAnalyzer()
