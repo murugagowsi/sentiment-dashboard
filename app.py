@@ -216,7 +216,14 @@ if negative_text.strip():
 
 else:
     st.info("No negative reviews found in this dataset.")
+# ---- Model vs VADER ----
+st.subheader("Model vs VADER")
 
+st.table(pd.DataFrame({
+    "Metric": ["Macro-F1", "Negative recall", "Accuracy"],
+    "VADER": ["0.49", "43%", "~78%"],
+    "My Model": ["0.53", "63%", "~78%"],
+}))
 
 # ---- Try It Yourself ----
 st.subheader("Try It Yourself")
