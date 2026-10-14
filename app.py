@@ -287,7 +287,8 @@ if st.button("Analyze"):
                 f"**Model Confidence:** {confidence:.0f}%"
             )
             st.write(dict(zip(ml_model.classes_, probs.round(2))))
-
+            if low_confidence:
+                st.caption("Low confidence: short reviews are harder for the model. Try a longer review.")
             # VADER Sentiment Analysis
             vader_analyzer = SentimentIntensityAnalyzer()
 
