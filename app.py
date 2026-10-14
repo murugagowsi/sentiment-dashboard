@@ -274,8 +274,8 @@ if st.button("Analyze"):
             confidence = probs.max() * 100
 
             # Low confidence means the review is treated as Neutral
-            if confidence < 60:
-                prediction = "neutral"
+            
+            low_confidence=confidence<60
 
             # Display ML prediction
             st.write(
