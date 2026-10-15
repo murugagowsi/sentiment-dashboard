@@ -1,3 +1,8 @@
+
+
+## Related Project
+
+A separate FastAPI backend for the same model and VADER analysis is available here: [sentiment-api](https://github.com/murugagowsi/sentiment-api). It returns both a trained ML prediction and a VADER prediction for any review.
 # Product Review Sentiment Dashboard
 
 An interactive Streamlit dashboard that analyzes Amazon food product reviews and shows sentiment trends and common complaints.
@@ -50,3 +55,4 @@ An interactive Streamlit dashboard that analyzes Amazon food product reviews and
 ## Future Improvements
 - Use bigrams (e.g. "not good", "too salty") 
 - Balance the dataset before modeling
+  
